@@ -186,18 +186,7 @@
   
   (setq pt1 nil))
 
-;; (defun Justtostr_ ()
-;;   (if (= 0 ml_j)
-;;     (setq just "×ó")
-;;     (if	(= 1 ml_j)
-;;       (setq just "ÖÐ")
-;;       (setq just "ÓÒ")
-;;     )
-;;   )
-;;   (if (/= (getvar "CMLJUST") ml_j)
-;;     (setvar "CMLJUST" ml_j)
-;;   )
-;; )
+
 (defun init_ ()
   (setq  pt1 nil
    pt2 nil
