@@ -853,6 +853,7 @@
   (DB_change_ent DB_line2 11 y))
 
 
+
 ;根据四点修补墙线
 (defun buxian_(p1 p2 p3 p4 / l1 l2 l3 l4)
   (setq l1 (getwall_ p1)
