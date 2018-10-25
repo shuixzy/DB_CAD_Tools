@@ -1232,15 +1232,12 @@
   (apply 'append (mapcar '(lambda (x) (if (eq (car x) 10) (list (cdr x)))) (entget ss))))
 ;更改图元某一参数，(DB_change_ent 图元名 属性点对值 属性内容)
 (defun DB_change_ent(seg num conts / ssl_ cont)
-    (setq ssl_ (entget seg))
-    ;(setq cont (assoc mum ssl_))
-    ;(DB_debug ssl_)
-    ;(DB_debug cont)
-    ;; (if cont
-    ;;   (setq ssl_ (subst (cons num conts) cont ssl_))
-    ;;   (setq ssl_ (vl-sort (append ssl_ (list (cons num conts))) (function (lambda (e1 e2) (< (car e1) (car e2)))))))
-    ;(DB_debug ssl_)
-    (setq ssl_ (subst (cons num conts) (assoc num ssl_) ssl_))
+    (setq ssl_ (entget seg)
+          cont (assoc num ssl_))
+    (if cont
+      (setq ssl_ (subst (cons num conts) cont ssl_))
+      (setq ssl_ (append ssl_ (list (cons num conts)))))
+    ;(setq ssl_ (subst (cons num conts) (assoc num ssl_) ssl_))
     (entmod ssl_)
     (entupd seg))
 
