@@ -1204,108 +1204,110 @@
              (rtos *patt_x 2 0)
              ">¡¿"))
     
-    (initget 1 "Pattern Disp Offset")
-    (setq pt1 (getpoint pt (strcat "\n»æÍ¼±ÈÀý¡¾D¡¿ / Æ«ÒÆ¾àÀë¡¾O¡¿ / Í¼°¸ÁÐ±í¡¾P¡¿ / µ±Ç°´úºÅ<" (rtos *patt_x 2 0) ">")))
+    (initget 1 "Pattern Disp Offset  ")
+    (setq pt1 (getpoint pt (strcat "\n»æÍ¼±ÈÀý¡¾D¡¿ / Æ«ÒÆ¾àÀë¡¾O¡¿ / Í¼°¸ÁÐ±í¡¾P¡¿ / <Æ«ÒÆ·½Ïò>")))
     (cond
       ((= pt1 "Disp") (DB_set_scale_pt1))
-      ((= pt1 "Offset" (setq *offdis (atoi (DB_get_input "Æ«ÒÆ¾àÀë" *offdis))) (setq pt1 nil)))
+      ((= pt1 "Offset") 
+       (setq *offdis (atoi (DB_get_input "Æ«ÒÆ¾àÀë" (rtos *offdis 2 0)))) 
+       (setq pt1 nil))
       ((= pt1 "Pattern") 
        (DB_show_list pat_list 0) 
-       (setq patt_ (atoi (DB_get_input "Í¼°¸´úºÅ" *patt_x)))
+       (setq patt_ (atoi (DB_get_input "Í¼°¸´úºÅ" (rtos *patt_x 2 0))))
        (if (/= (assoc patt_ pat_list) nil)
         (setq *patt_x patt_))
        (setq pt1 nil))
-      (T nil)))
-
-  (setq ang2 (angle pt pt1))
-  (if (and (< ang1 pi) (>= ang1 0))
-    (if (or (< ang2 ang1) (> ang2 (+ ang1 pi)))
-      (setq ang_c -1)
-      (setq ang_c 1))
-    
-    (if (and (< ang2 ang1) (< ang1 (+ ang2 pi)))
-      (setq ang_c -1)
-      (setq ang_c 1)))
-  (if (and (<= *h 70) (> *h 30))
-    (setq hscal "h50")
-    (if (> *h 70)
-      (setq hscal "h100")
-      (setq hscal "h20")))
-  (setq li 0)
-  (while (< (+ 1 li) ln)
-
-    (setq lx (nth li pl)
-          ly (nth (+ 1 li) pl)
-          ang1 (angle lx ly)
-          ang_ (+ ang1 (* (/ pi 2) ang_c)))
-    
-      
-    (cond
-      ((= *patt_x 0) (setq m 0
-                           n (/ (distance lx ly) (/ *offdis 2)))
-
-        (while (<= m n)
-          (setq l3 (polar lx ang1 (* m (/ *offdis 2))))
-          (if (= (rem m 2) 0)
-            (setq l4 (polar l3 ang_ *offdis))
-            (setq l4 (polar l3 ang_ (/ *offdis 2))))
+      ((= pt1 "") nil)
+      (T (setq ang2 (angle pt pt1))
+        (if (and (< ang1 pi) (>= ang1 0))
+          (if (or (< ang2 ang1) (> ang2 (+ ang1 pi)))
+            (setq ang_c -1)
+            (setq ang_c 1))
           
-          
-          (DB_line2 l3 l4)
-          (setq pm (ssadd (entlast) pm))
-          (setq m (+ m 1))))
+          (if (and (< ang2 ang1) (< ang1 (+ ang2 pi)))
+            (setq ang_c -1)
+            (setq ang_c 1)))
+        (if (and (<= *h 70) (> *h 30))
+          (setq hscal "h50")
+          (if (> *h 70)
+            (setq hscal "h100")
+            (setq hscal "h20")))
+        (setq li 0)
+        (while (< (+ 1 li) ln)
 
-      ((= *patt_x 4) (setq m 0
-                           n (fix (/ (distance lx ly) (* *offdis 2))))
+          (setq lx (nth li pl)
+                ly (nth (+ 1 li) pl)
+                ang1 (angle lx ly)
+                ang_ (+ ang1 (* (/ pi 2) ang_c)))
+          
             
-        (if (> n 0)
+          (cond
+            ((= *patt_x 0) (setq m 0
+                                n (/ (distance lx ly) (/ *offdis 2)))
+
+              (while (<= m n)
+                (setq l3 (polar lx ang1 (* m (/ *offdis 2))))
+                (if (= (rem m 2) 0)
+                  (setq l4 (polar l3 ang_ *offdis))
+                  (setq l4 (polar l3 ang_ (/ *offdis 2))))
+                
+                
+                (DB_line2 l3 l4)
+                (setq pm (ssadd (entlast) pm))
+                (setq m (+ m 1))))
+
+            ((= *patt_x 4) (setq m 0
+                                n (fix (/ (distance lx ly) (* *offdis 2))))
+                  
+              (if (> n 0)
+                (progn
+                  (setq dish (/ (distance lx ly) n))
+        
+                  (setq l1 lx)
+                  (setq ll '())
+                  (setq ll (cons l1 ll))
+                  (while (< m n)
+                    (setq l3 (polar l1 ang1 dish))
+                    (setq l4 (polar l3 ang_ *offdis))
+                    (setq ll (cons l3 (cons l4 ll)))
+                    (setq l1 l3)
+                    (setq m (+ m 1)))
+                  
+                  (DB_pline1 ll)
+                  (setq pm (ssadd (entlast) pm)))))
+            (t (setq l3 (polar ly ang_ *offdis)
+                    l4 (polar lx ang_ *offdis))  
+              (if (> li 0)
+                (progn
+                  (setq l5 (nth (- li 1) pl)
+                        ang2 (angle l5 lx)
+                        ang_ (+ ang2 (* (/ pi 2) ang_c))  
+                        l5 (polar l5 ang_ *offdis)
+                        l6 (polar lx ang_ *offdis)
+                        lp (inters l3 l4 l5 l6 nil))  
+                  (if lp
+                    (setq l4 lp))))
+              (if (< (+ li 2) ln)
+                (progn          
+                  (setq l6 (nth (+ li 2) pl)
+                        ang2 (angle ly l6)
+                        ang_ (+ ang2 (* (/ pi 2) ang_c))
+                        l5 (polar ly ang_ *offdis)
+                        l6 (polar l6 ang_ *offdis)
+                        lp (inters l3 l4 l5 l6 nil))  
+                  (if lp
+                    (setq l3 lp))))  
+              (DB_sethatch)
+              (DB_closesnap)
+              (command "-HATCH" "P" (nth 1 (assoc *patt_x pat_list)) *h (angtos ang1 0 4) "w" "N" lx ly l3 l4 "c" "" "")
+              (setq pm (ssadd (entlast) pm))
+              (DB_releasesnap)))
+          (setq li (1+ li)))
+        (if pm
           (progn
-            (setq dish (/ (distance lx ly) n))
-  
-            (setq l1 lx)
-            (setq ll '())
-            (setq ll (cons l1 ll))
-            (while (< m n)
-              (setq l3 (polar l1 ang1 dish))
-              (setq l4 (polar l3 ang_ *offdis))
-              (setq ll (cons l3 (cons l4 ll)))
-              (setq l1 l3)
-              (setq m (+ m 1)))
-            
-            (DB_pline1 ll)
-            (setq pm (ssadd (entlast) pm)))))
-      (t (setq l3 (polar ly ang_ *offdis)
-               l4 (polar lx ang_ *offdis))  
-        (if (> li 0)
-          (progn
-            (setq l5 (nth (- li 1) pl)
-                  ang2 (angle l5 lx)
-                  ang_ (+ ang2 (* (/ pi 2) ang_c))  
-                  l5 (polar l5 ang_ *offdis)
-                  l6 (polar lx ang_ *offdis)
-                  lp (inters l3 l4 l5 l6 nil))  
-            (if lp
-              (setq l4 lp))))
-        (if (< (+ li 2) ln)
-          (progn          
-            (setq l6 (nth (+ li 2) pl)
-                  ang2 (angle ly l6)
-                  ang_ (+ ang2 (* (/ pi 2) ang_c))
-                  l5 (polar ly ang_ *offdis)
-                  l6 (polar l6 ang_ *offdis)
-                  lp (inters l3 l4 l5 l6 nil))  
-            (if lp
-              (setq l3 lp))))  
-        (DB_sethatch)
-        (DB_closesnap)
-        (command "-HATCH" "P" (nth 1 (assoc *patt_x pat_list)) *h (angtos ang1 0 4) "w" "N" lx ly l3 l4 "c" "" "")
-        (setq pm (ssadd (entlast) pm))
-        (DB_releasesnap)))
-    (setq li (1+ li)))
-  (if pm
-    (progn
-      (DB_make_block_noname pm ly)
-      (DB_movelayer hscal (entlast))))
+            (DB_make_block_noname pm ly)
+            (DB_movelayer hscal (entlast))))
+        )))
   
   (command "undo" "e")
   (princ)
