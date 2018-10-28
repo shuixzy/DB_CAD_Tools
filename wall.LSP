@@ -1200,9 +1200,11 @@
              (rtos *h 2 0)
              ">    Ìî³äÍ¼°¸£º¡¾"
              (nth 1 (assoc *patt_x pat_list))
-             "<"
+             "<" 
              (rtos *patt_x 2 0)
-             ">¡¿"))
+             ">¡¿    Æ«ÒÆ¾àÀë£º¡¾"
+             (rtos *offdis 2 0)
+             "¡¿"))
     
     (initget 1 "Pattern Disp Offset  ")
     (setq pt1 (getpoint pt (strcat "\n»æÍ¼±ÈÀý¡¾D¡¿ / Æ«ÒÆ¾àÀë¡¾O¡¿ / Í¼°¸ÁÐ±í¡¾P¡¿ / <Æ«ÒÆ·½Ïò>")))
@@ -1306,8 +1308,8 @@
         (if pm
           (progn
             (DB_make_block_noname pm ly)
-            (DB_movelayer hscal (entlast))))
-        )))
+            (DB_movelayer hscal (entlast)))))))
+        
   
   (command "undo" "e")
   (princ)
