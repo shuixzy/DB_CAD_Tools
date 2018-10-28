@@ -1133,7 +1133,7 @@
   (princ))
 
 
-(defun c:tcx(/ line_h m n ssl pt lx ly pt1 pt2 dis_ ang1 ang2 ang_ pat_list l1 l3 l4 l5 l6 lp hscal dish ll pm pl li ln ang_c chuidis chuidis_ ss pt_)      ;填充线
+(defun c:tcx(/ line_h m n ssl pt lx ly pt1 patt_ dis_ ang1 ang2 ang_ pat_list l1 l3 l4 l5 l6 lp hscal dish ll pm pl li ln ang_c chuidis chuidis_ ss pt_)      ;填充线
 
   (command "undo" "be")
   (setq pat_list '(
@@ -1204,25 +1204,20 @@
              (rtos *patt_x 2 0)
              ">】"))
     
-    (initget 1 "Pattern Disp  ")
-    (setq pt1 (getint (strcat "\n绘图比例【D】 / 图案列表【P】 / 图案代号<" (rtos *patt_x 2 0) ">")))
+    (initget 1 "Pattern Disp Offset")
+    (setq pt1 (getpoint pt (strcat "\n绘图比例【D】 / 偏移距离【O】 / 图案列表【P】 / 当前代号<" (rtos *patt_x 2 0) ">")))
     (cond
       ((= pt1 "Disp") (DB_set_scale_pt1))
-      ((= pt1 "Pattern") (DB_show_list pat_list 0))
-      ((= pt1 "") nil)
-      (T 
-        (if (/= pt1 nil)
-          (if (/= (assoc pt1 pat_list) nil)
-            (setq *patt_x pt1)
-            (setq pt1 nil))))))
+      ((= pt1 "Offset" (setq *offdis (atoi (DB_get_input "偏移距离" *offdis))) (setq pt1 nil)))
+      ((= pt1 "Pattern") 
+       (DB_show_list pat_list 0) 
+       (setq patt_ (atoi (DB_get_input "图案代号" *patt_x)))
+       (if (/= (assoc patt_ pat_list) nil)
+        (setq *patt_x patt_))
+       (setq pt1 nil))
+      (T nil)))
 
-  (setq dis_ (getint (strcat "\n偏移距离:<" (rtos *offdis 2 0) ">")))
-  (if (/= dis_ nil)
-    (setq *offdis dis_))
-  
-  (while (= pt2 nil)
-    (setq pt2 (getpoint pt "偏移方向：")))
-  (setq ang2 (angle pt pt2))
+  (setq ang2 (angle pt pt1))
   (if (and (< ang1 pi) (>= ang1 0))
     (if (or (< ang2 ang1) (> ang2 (+ ang1 pi)))
       (setq ang_c -1)
