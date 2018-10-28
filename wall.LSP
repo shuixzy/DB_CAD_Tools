@@ -1133,7 +1133,7 @@
   (princ))
 
 
-(defun c:tcx(/ line_h m n ssl pt lx ly pt1 patt_ dis_ ang1 ang2 ang_ pat_list l1 l3 l4 l5 l6 lp hscal dish ll pm pl li ln ang_c chuidis chuidis_ ss pt_)      ;填充线
+(defun c:tcx(/ line_h m n ssl pt lx ly pt1 patt_ dis_ ang1 ang2 ang_ pat_list l1 l3 l4 l5 l6 lp hscal dish ll pm pl li ln ang_c chuidis chuidis_ ss pt_ offdis)      ;填充线
 
   (command "undo" "be")
   (setq pat_list '(
@@ -1172,7 +1172,8 @@
   (while (= pt1 nil)
     (setq ss (entsel "\n选择你要填充的直线："))
     (setq line_h (car ss))
-    (setq pt (cadr ss)) 
+    (setq pt (cadr ss) 
+          pt (DB_get_per_ent line_h pt))
     (setq ssl (ENTGET line_h))
     (if (= (cdr (assoc 0 ssl)) "LWPOLYLINE")
       (setq pl (DB_get_Plpoints line_h)        ;读取PL线端点列表
@@ -1202,17 +1203,15 @@
              (nth 1 (assoc *patt_x pat_list))
              "<" 
              (rtos *patt_x 2 0)
-             ">】    偏移距离：【"
-             (rtos *offdis 2 0)
-             "】"))
+             ">】"))
     
     (initget 1 "Pattern Disp Offset  ")
-    (setq pt1 (getpoint pt (strcat "\n绘图比例【D】 / 偏移距离【O】 / 图案列表【P】 / <偏移方向>")))
+    (setq pt1 (getpoint pt (strcat "\n绘图比例【D】 / 图案列表【P】 / <偏移至>")))
     (cond
       ((= pt1 "Disp") (DB_set_scale_pt1))
-      ((= pt1 "Offset") 
-       (setq *offdis (atoi (DB_get_input "偏移距离" (rtos *offdis 2 0)))) 
-       (setq pt1 nil))
+      ;; ((= pt1 "Offset") 
+      ;;  (setq *offdis (atoi (DB_get_input "偏移距离" (rtos *offdis 2 0)))) 
+      ;;  (setq pt1 nil))
       ((= pt1 "Pattern") 
        (DB_show_list pat_list 0) 
        (setq patt_ (atoi (DB_get_input "图案代号" (rtos *patt_x 2 0))))
@@ -1220,7 +1219,9 @@
         (setq *patt_x patt_))
        (setq pt1 nil))
       ((= pt1 "") nil)
-      (T (setq ang2 (angle pt pt1))
+      (T (setq ang2 (angle pt pt1)
+               pt (DB_get_per_ent line_h pt1))
+        (setq offdis (distance pt pt1))
         (if (and (< ang1 pi) (>= ang1 0))
           (if (or (< ang2 ang1) (> ang2 (+ ang1 pi)))
             (setq ang_c -1)
@@ -1245,13 +1246,13 @@
             
           (cond
             ((= *patt_x 0) (setq m 0
-                                n (/ (distance lx ly) (/ *offdis 2)))
+                                n (/ (distance lx ly) (/ offdis 2)))
 
               (while (<= m n)
-                (setq l3 (polar lx ang1 (* m (/ *offdis 2))))
+                (setq l3 (polar lx ang1 (* m (/ offdis 2))))
                 (if (= (rem m 2) 0)
-                  (setq l4 (polar l3 ang_ *offdis))
-                  (setq l4 (polar l3 ang_ (/ *offdis 2))))
+                  (setq l4 (polar l3 ang_ offdis))
+                  (setq l4 (polar l3 ang_ (/ offdis 2))))
                 
                 
                 (DB_line2 l3 l4)
@@ -1259,7 +1260,7 @@
                 (setq m (+ m 1))))
 
             ((= *patt_x 4) (setq m 0
-                                n (fix (/ (distance lx ly) (* *offdis 2))))
+                                n (fix (/ (distance lx ly) (* offdis 2))))
                   
               (if (> n 0)
                 (progn
@@ -1270,22 +1271,22 @@
                   (setq ll (cons l1 ll))
                   (while (< m n)
                     (setq l3 (polar l1 ang1 dish))
-                    (setq l4 (polar l3 ang_ *offdis))
+                    (setq l4 (polar l3 ang_ offdis))
                     (setq ll (cons l3 (cons l4 ll)))
                     (setq l1 l3)
                     (setq m (+ m 1)))
                   
                   (DB_pline1 ll)
                   (setq pm (ssadd (entlast) pm)))))
-            (t (setq l3 (polar ly ang_ *offdis)
-                    l4 (polar lx ang_ *offdis))  
+            (t (setq l3 (polar ly ang_ offdis)
+                    l4 (polar lx ang_ offdis))  
               (if (> li 0)
                 (progn
                   (setq l5 (nth (- li 1) pl)
                         ang2 (angle l5 lx)
                         ang_ (+ ang2 (* (/ pi 2) ang_c))  
-                        l5 (polar l5 ang_ *offdis)
-                        l6 (polar lx ang_ *offdis)
+                        l5 (polar l5 ang_ offdis)
+                        l6 (polar lx ang_ offdis)
                         lp (inters l3 l4 l5 l6 nil))  
                   (if lp
                     (setq l4 lp))))
@@ -1294,8 +1295,8 @@
                   (setq l6 (nth (+ li 2) pl)
                         ang2 (angle ly l6)
                         ang_ (+ ang2 (* (/ pi 2) ang_c))
-                        l5 (polar ly ang_ *offdis)
-                        l6 (polar l6 ang_ *offdis)
+                        l5 (polar ly ang_ offdis)
+                        l6 (polar l6 ang_ offdis)
                         lp (inters l3 l4 l5 l6 nil))  
                   (if lp
                     (setq l3 lp))))  

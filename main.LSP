@@ -1136,40 +1136,58 @@
           onseg))
 
 ;求点到直线或圆弧垂点。如无垂点，则返回nil
-(defun DB_get_per_ent(ent pt / ang1 ang2 angx @pt pt1 pt2 pto arclength)
+(defun DB_get_per_ent(ent pt / ang1 ang2 angx @pt pt1 pt2 pto arclength ptl m n len lenmin)
   (setq @pt nil)
-  (if (= (DB_get_ent ent 0) "LINE")
-    (setq pt1 (DB_get_ent ent 10)
-          pt2 (DB_get_ent ent 11) 
-          @pt (DB_get_per_point pt1 pt2 pt t))
-    (if (= (DB_get_ent ent 0) "ARC")
-      (progn
-        (setq ang1 (DB_get_ent ent 50)
-              ang2 (DB_get_ent ent 51)
-              pto (DB_get_ent ent 10)
-              arclength (DB_get_ent ent 40)
-              angx (angle pto pt)
-              @pt nil
-              pt1 nil
-              pt2 nil)
-        ;; (if (and (> angx pi) (< ang1 pi))
-        ;;   (setq angx (- angx pi)))
-        (if (< ang2 ang1)
-          (setq ang2 (+ ang2 (* pi 2))))
-        (if (and (< angx ang2) (> angx ang1))
-          (setq pt1 (polar pto angx arclength)))
-        (setq angx (+ angx pi))
-        (if (and (< angx ang2) (> angx ang1))
-          (setq pt2 (polar pto angx arclength)))
-        (if (and pt1 pt2)
-          (progn
-            (if (< (distance pt1 pt) (distance pt2 pt))
-              (setq @pt pt1)
-              (setq @pt pt2)))
-          (if pt1
+  (cond
+    ((= (DB_get_ent ent 0) "LINE")
+     (setq pt1 (DB_get_ent ent 10)
+           pt2 (DB_get_ent ent 11) 
+           @pt (DB_get_per_point pt1 pt2 pt t)))
+    ((= (DB_get_ent ent 0) "ARC")
+     (setq ang1 (DB_get_ent ent 50)
+            ang2 (DB_get_ent ent 51)
+            pto (DB_get_ent ent 10)
+            arclength (DB_get_ent ent 40)
+            angx (angle pto pt)
+            @pt nil
+            pt1 nil
+            pt2 nil)
+      ;; (if (and (> angx pi) (< ang1 pi))
+      ;;   (setq angx (- angx pi)))
+     (if (< ang2 ang1)
+        (setq ang2 (+ ang2 (* pi 2))))
+     (if (and (< angx ang2) (> angx ang1))
+        (setq pt1 (polar pto angx arclength)))
+     (setq angx (+ angx pi))
+     (if (and (< angx ang2) (> angx ang1))
+        (setq pt2 (polar pto angx arclength)))
+     (if (and pt1 pt2)
+        (progn
+          (if (< (distance pt1 pt) (distance pt2 pt))
             (setq @pt pt1)
-            (if pt2
-              (setq @pt pt2)))))))
+            (setq @pt pt2)))
+        (if pt1
+          (setq @pt pt1)
+          (if pt2
+            (setq @pt pt2)))))
+    ((= (DB_get_ent ent 0) "LWPOLYLINE")
+     (setq ptl (mapcar 'cdr (vl-remove-if-not '(lambda (x) (= (car x) 10)) (entget ent)))
+           m 1
+           n (length ptl))
+     (while (< m n)
+        (setq pt1 (nth (- m 1) ptl)
+              pt2 (nth m ptl))
+        (setq pto (DB_get_per_point pt1 pt2 pt t))
+        (if pto
+          (progn
+            (setq len (distance pto pt))
+            (if lenmin
+              (if (< len lenmin)
+                (setq lenmin len
+                      @pt pto))
+              (setq lenmin len
+                    @pt pto)))) 
+        (setq m (1+ m)))))
   @pt)
       
 
