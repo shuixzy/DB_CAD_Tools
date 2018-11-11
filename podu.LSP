@@ -83,6 +83,7 @@
   (DB_get_ent s1 int)
   ;获取多段线顶点
   (DB_get_Plpoints s1)
+  (DB_get_Plpoints3d s1)
   ;更改图元某一参数
   (DB_change_ent s1 int cont)
   ;取得动态块原名
@@ -91,6 +92,12 @@
   (DB_offset_pt pt x y)
   ;取得随机数值
   (DB_random site)
+  ;根据矩阵转换坐标
+  (DB_get_trans pts m)
+  ;在表的末尾加个元素
+  (DB_conslast s1 list)
+  ;获取离多段线最近段顶点，可输入pl线或点表
+  (DB_get_PLnear ss pt)
 
   ;;;;;;;;;;;;;;;绘制;;;;;;;;;;;;;;
   ;根据点表画线
@@ -122,7 +129,7 @@
   ;批量画线
   (DB_draw_lines lst layer)
   
-  ;打断直线 //未完成
+  ;打断直线
   (DB_break_line line pt1 pt2)
   ;字母递增
   (DB_nextnum str)
@@ -171,6 +178,7 @@
   (DB_make_dimstyle name style))
   
 ;=============
+
 (defun c:pd (/     h__   ss1   n     pt1   pt2   m     ed    SSL
              py1   py2   pt    py    mirr  podua podui podul inpt
              poduis   poduls)
@@ -668,6 +676,53 @@
       (setq blk (ssadd (entlast) blk))))
   (DB_make_block_noname blk (mapcar '(lambda (X Y) (* (+ X Y) 0.5)) pt1 pt2))
   (princ)(princ))
+;xl直线
+(defun c:xl(/ pt1 po px py ang pl sel)
+  (setq pt1 nil)
+  (initget 1 "Disp Select Hor Ver   ")
+  (while (= pt1 nil)
+    (setq pt1 (getpoint "\n点取中心点或设置比例【D】 / 选择直线【S】 / 垂直【V】 / 水平【H】"))
+    (cond
+      ((= pt1 "Disp") (DB_set_scale_pt1))
+      ((= pt1 "Select") (setq pl (DB_get_referline)
+                              po (car pl)
+                              ang (angle po (cadr pl))))                                                   
+      ((= pt1 "Ver") (setq po (getpoint "\n点选中心点：")
+                           ang (/ pi 2)))
+      ((= pt1 "Hor") (setq po (getpoint "\n点选中心点：")
+                           ang 0))
+      (t (setq px (getpoint pt1 "\n点选方向：")
+               po pt1
+               ang (angle po px)))))
+  (setq px (polar po ang (* *h 1000))
+        py (polar po (+ ang pi) (* *h 1000)))
+  (DB_line2 px py)
+  (princ))
+;对齐指令
+(defun c:dq (/ ss al px py lx ly po ang m n)
+  (arxload "geom3d")
+  (prompt "\n选择需要对齐的图元：")
+  (setq ss (ssget))
+  (prompt "\n选择要对齐的边：")
+  (setq al (DB_get_referline))
+  (setq px (car al)
+        py (cadr al))
+  (prompt "\n选择要对齐的位置：")
+  (setq al (DB_get_referline)
+        lx (car al)
+        ly (cadr al))
+  (if (< (distance py lx) (distance px lx))
+    (setq po px
+          px py
+          py px))
+  (align ss px lx py ly "" "N")
+  ;;(setq ang (- (angle lx ly) (angle px py)))
+  ;; (setq m 0
+  ;;       n (SSlength ss))
+  ;; (while (< m n)
+  ;;   (DB_change_posi (ssname ss m) px lx ang)
+  ;;   (setq m (1+ m)))
+  (princ))
 ;双折断线
 (defun C:szdx(/ lay pt1 pt2 blk)
   (setvar "WIPEOUTFRAME" 0)

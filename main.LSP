@@ -1,177 +1,4 @@
-;函数引用
-(defun nouse()
-  ;测试
-  (DB_debug)
-  ;命令列表
-  (DB_helpinfo)
-  ;;;;;;;;;;;;设置;;;;;;;;;;;;;
-  ;初始设置 
-  (DB_svar)
-  ;设置填充图层
-  (DB_sethatch)
 
-  ;关闭捕捉 
-  (DB_closesnap)
-  ;恢复捕捉 
-  (DB_releasesnap)
-
-  ;设置容错值全局变量*zl
-  (DB_setzl)
-  ;设置总图测量比例全局变量*sca_ 
-  (DB_set_unit_pt1)
-  ;设置绘图比例全局变量*h 
-  (DB_set_scale_pt1)
-  (DB_set_scale_inpt)
-  ;设置全局变量标高*eva_ 
-  (DB_set_eva_pt1)
-  ;如果没有初始比例则设置，并设置显示比例
-  (DB_init_scale int)
-
-  ;;;;;;;;;;;;;;输入输出;;;;;;;;;;;
-  ;输入整数
-  (DB_get_int_pt1 str def)
-  ;输入实数
-  (DB_get_real_pt1 str def)
-  ;读取文件数据
-  (DB_read_file filename)
-  ;创建或打开文件，mode为"d",filename为目录名，返回完整目录名,mode为"f",返回文件名,mode为"a,w,r"直接打开文件。
-  (DB_open_file filename mode)
-  ;输出数据,out为真则显示输出目录.
-  (DB_write_file filename str out)
-  ;对话框输入数据
-  (DB_get_input tag def)
-  ;对话框输入多项参数
-  (DB_get_Minput tags)
-  ;确认是否
-  (DB_yesorno str def)
-  ;显示列表
-  (DB_show_list lst)
-
-  ;;;;;;;;;;;;;;计算;;;;;;;;;;;;;
-  ;获取图元属性
-  (DB_cx ssl)
-  ;对比图元属性
-  (DB_dbxx ssl1 ssl2)
-  ;显示进度(REPEAT (SETQ i 0) (DB_progress (SETQ i (1+ i)) 100000))
-  (DB_progress i n)
-  ;获取属性文字内容,返回表
-  (DB_cxb s1)
-  ;获取下一图元（块内的属性），(DB_dizhen 图元表) 返回图元表
-  (DB_dizhen ssl)
-  ;获取图元属性(DB_tysx 图元名)返回表
-  (DB_tysx s1)
-  ;获取图元所有属性(DB_get_att 图元名)返回表
-  (DB_get_att s1)
-  ;拾取框大小
-  (DB_getPickboxHeight)
-  ;求直线垂点。
-  (DB_get_per_point pt1 pt2 pt onseg)
-  ;求点到直线或圆弧垂点。如无垂点，则返回nil
-  (DB_get_per_ent s1 pt)
-  ;取得图元坐标
-  (DB_get_pt_2p s1)
-  (DB_get_pt_1p s1)
-  ;获取险段中点
-  (DB_get_midpoint line)
-  ;重新排列两点  返回 &pt1 &pt2
-  (DB_array_2pt pt1 pt2)
-  ;合并选择集
-  (DB_merge_ss ss1 ss2)
-  ;根据两个角点获得矩形四个角点坐标，从左下角逆时针顺序。
-  (DB_get_box pt1 pt2)
-  ;获取图元某一参数
-  (DB_get_ent s1 int)
-  ;获取多段线顶点
-  (DB_get_Plpoints s1)
-  ;更改图元某一参数
-  (DB_change_ent s1 int cont)
-  ;取得动态块原名
-  (DB_get_realname blk)
-  ;按比例偏移坐标
-  (DB_offset_pt pt x y)
-  ;取得随机数值
-  (DB_random site)
-
-  ;;;;;;;;;;;;;;;绘制;;;;;;;;;;;;;;
-  ;根据点表画线
-  (DB_drawlist pts)
-  ;绘制捕捉标记
-  (DB_snapmark pt)
-  ;移动属性块
-  (DB_moveblock blk pt)
-  (DB_moveblock blk pt1 pt2)
-  ;动态显示坐标标注
-  (DB_dis_zb blk)
-  ;动态显示属性块
-  (DB_dis_block blk str1 str2)
-  ;动态显示门窗
-  (DB_dis_WD blk)
-  ;动态显示标高标注
-  (DB_dis_bg)
-  ;画线
-  (DB_line2 pt1 pt2)
-  (DB_line3 pt1 pt2 layer)
-  ;画多段线
-  (DB_pline1 lst)
-  (DB_plinel lst layer)
-  (DB_plinew lst width)
-  (DB_pline3 lst width layer)
-  ;画闭合pl线
-  (DB_plinebh lst width layer)
-  (DB_plinejt lst layer)
-  ;批量画线
-  (DB_draw_lines lst layer)
-  
-  ;打断直线 //未完成
-  (DB_break_line line pt1 pt2)
-  ;字母递增
-  (DB_nextnum str)
-
-  ;创建图层
-  (DB_EntmakeLayer name color width)
-  ;新建图层
-  (DB_makelayer layer)
-  ;移动到指定图层 
-  (DB_movelayer layer s1)
-  (DB_makelayer_name name s1)
-  
-  ;生成文字
-  (DB_make_text2 pt str)
-  (DB_make_text3 pt str layer)
-  (DB_make_text4 pt str heigh layer)
-  (DB_make_midtext2 pt str)
-  (DB_make_midtext3 pt str layer)
-  (DB_make_midtext4 pt str heigh layer)
-  (DB_make_text8 pt str style heigh weigth ang layer pos)
-  ;偏移坐标打字
-  (DB_offset_text pt x y)
-
-  ;生成文字样式 
-  (DB_make_style style)
-  (DB_make_style3 style heigh width)
-  (DB_make_style5 style heigh width shx shx)
-  
-  ;生成无名块
-  (DB_make_block_noname ss pt)
-  ;自动生成块
-  (DB_make_block)
-  ;插入块
-  (DB_insert_block2 blk pt)
-  (DB_insert_block3 blk pt layer)
-  (DB_insert_block4 blk pt layer ang)
-  (DB_insert_block5 blk pt layer ang scale)
-  (DB_insert_block blk pt layer ang x y z)
-  
-  ;生成点
-  (DB_make_pt pt)
-  ;生成属性
-  (DB_make_att (pt tag def style layer h w color))
-
-  ;生成标注样式 //未完成
-  (DB_make_dimstyle name style))
-  
-;=============
-;错误处理
 (defun *error*(st)
   (if (and (/= st "Function cancelled")
        (/= st "quit / exit abort"))
@@ -1248,6 +1075,95 @@
 ;获取多段线顶点 示例 (DB_get_Plpoints 图元名)
 (defun DB_get_Plpoints (ss)
   (apply 'append (mapcar '(lambda (x) (if (eq (car x) 10) (list (cdr x)))) (entget ss))))
+(defun DB_get_Plpoints3d (pl / pts z)
+  (setq pts (vl-remove-if-not '(lambda (x) (= 10 (car x))) (entget pl)))
+  (setq pts (mapcar 'cdr pts))
+  (setq pts (mapcar '(lambda (x) (DB_conslast (if (setq z (assoc 38 (entget pl))) (cdr z) 0.0) x)) pts))
+  pts)
+
+;转换坐标 nentsel换成WUCS
+(defun DB_get_trans (pts m /)
+  (setq pts (mapcar '(lambda (x) (DB_conslast 1.0 x)) pts))
+  (mapcar '(lambda (x) (DB_get_VXM x m)) pts))
+
+;;在表的末尾加个元素
+(defun DB_conslast (x l /)
+  (reverse (cons x (reverse l))))
+
+;;向量乘以矩阵
+(defun DB_get_VXM (v m / i sum)
+  (setq i 1 sum nil)
+  (repeat (DB_get_collen m)
+    (setq sum (cons (DB_get_VXU v (DB_get_colindex m i)) sum))
+    (setq i (1+ i)))
+  
+  (reverse sum))
+
+;;获取矩阵的列数
+(defun DB_get_collen (m /)
+  (apply 'max (mapcar 'length m)))
+
+;;向量乘以向量
+(defun DB_get_VXU (v u /)
+  (apply '+ (mapcar '(lambda (x y) (* x y)) u v)))
+
+;;获取矩阵的某一列
+(defun DB_get_colindex (m col-index /)
+  (if (and (> col-index 0) (<= col-index (DB_get_collen m)))
+    (mapcar '(lambda (x) (nth (1- col-index) x)) m)))
+;平面坐标转换
+(defun DB_change_posi(cs cx cy ca / ptx pty ang lx ly m n sty)
+  (setq sty (DB_get_ent cs 0))
+  (setq ptx (DB_get_ent cs 10))
+  (if (wcmatch sty "LWPOLYLINE")
+    (setq ptx (mapcar '(lambda (pt) (polar cy (+ ca (angle cx pt)) (distance cx pt))) ptx))
+    (setq ptx (polar cy (+ ca (angle cx ptx)) (distance cx ptx))))
+  (DB_change_ent cs 10 ptx)
+  (setq pty (DB_get_ent cs 11))
+  (if pty
+    (progn
+      (if (wcmatch sty "LWPOLYLINE")
+        (setq pty (mapcar '(lambda (pt) (polar cy (+ ca (angle cx pt)) (distance cx pt))) pty))
+        (setq pty (polar cy (+ ca (angle cx pty)) (distance cx pty))))
+      (DB_change_ent cs 11 pty)))
+  (setq ang (DB_get_ent cs 50))
+  (if ang
+    (progn
+      (setq ang (+ ang ca))
+      (DB_change_ent cs 50 ang)))
+  (setq ang (DB_get_ent cs 51))
+  (if ang
+    (progn
+      (setq ang (+ ang ca))
+      (DB_change_ent cs 51 ang))))
+
+;获取离多段线最近段定点
+(defun DB_get_PLnear (ss pt / ln li chuidis chuidis_ pl lx ly dx dy)
+  (if (listp ss)
+    (setq pl ss)
+    (setq pl (DB_get_Plpoints ss)))
+  (setq ln (length pl)
+        li 0
+        chuidis nil)
+  (while (< (1+ li) ln)             ;逐段查找和选取点最近的线段，确定选取段角度
+    (setq lx (nth li pl)
+          ly (nth (+ 1 li) pl)
+          chuidis_ (DB_get_per_point lx ly pt nil))
+    (if (or (= chuidis nil) (and chuidis_ (< (distance pt chuidis_) (distance pt chuidis))))
+      (setq chuidis chuidis_
+            dx lx
+            dy ly))
+    (setq li (+ 1 li)))
+  (if (> ln 2)
+    (progn
+      (setq lx (last pl)
+            ly (car pl)
+            chuidis_ (DB_get_per_point lx ly pt nil))
+      (if (or (= chuidis nil) (and chuidis_ (< (distance pt chuidis_) (distance pt chuidis))))
+        (setq chuidis chuidis_
+              dx lx
+              dy ly))))
+  (list dx dy))
 ;更改图元某一参数，(DB_change_ent 图元名 属性点对值 属性内容)
 (defun DB_change_ent(seg num conts / ssl_ cont)
     (setq ssl_ (entget seg)
@@ -1281,6 +1197,37 @@
   
   blkname)
 
+
+;选择参考线,返回两个端点
+(defun DB_get_referline(/ sline sel pl po px ang)
+  (setq sel (nentsel "\n选择参考线：") 
+        sline (car sel))
+  (cond
+    ((wcmatch (DB_get_ent sline 0) "LWPOLYLINE")
+     (if (= (length sel) 4)
+      ;; (setq pl (DB_get_blocktrans (DB_get_Plpoints sline) (caddr sel) (DB_get_pt_1p (last (last sel)))) 
+       (setq pl (DB_get_trans (DB_get_Plpoints3d sline) (caddr sel))
+             pl (DB_get_PLnear pl (cadr sel)))                                  
+       (setq pl (DB_get_PLnear sline (cadr sel))))
+     (setq po (car pl)
+           px (cadr pl)))
+    ((wcmatch (DB_get_ent sline 0) "ARC")
+     (if (= (length sel) 4)
+       (setq px (car (DB_get_trans (list (DB_get_ent sline 10)) (caddr sel))))
+       (setq px (DB_get_ent sline 10))) 
+     (setq po (polar px (angle px (cadr sel)) (DB_get_ent sline 40))
+           ang (+ (angle po px ) (/ pi 2))
+           px (polar po ang (distance po px))))                                 
+    (t 
+     (if (= (length sel) 4)
+      ;; (setq po (car (DB_get_blocktrans (list (DB_get_ent sline 10)) (caddr sel) (DB_get_pt_1p (last (last sel)))))
+      ;;       px (car (DB_get_blocktrans (list (DB_get_ent sline 11)) (caddr sel) (DB_get_pt_1p (last (last sel))))))
+       (setq po (car (DB_get_trans (list (DB_get_ent sline 10)) (caddr sel)))
+             px (car (DB_get_trans (list (DB_get_ent sline 11)) (caddr sel))))
+       (setq po (DB_get_ent sline 10)
+             px (DB_get_ent sline 11)))
+     (setq ang (angle po px))))
+  (list po px))
 ;确认是否
 (defun DB_yesorno (contents def / yn str ret)
   (initget "Yes No")
@@ -1708,6 +1655,14 @@
   (entmake '((0 . "ENDBLK")))
   (entmake (list '(0 . "INSERT") (cons 2 name) (cons 10 pt)))
   name)
+;遍历选择集对所包含的图元进行指定函数操作,返回操作后的表
+(defun DB_Mapcar (ss Fun / nn rtn)
+  (if ss
+   (repeat (setq nn (sslength ss))
+    (setq rtn (cons (apply Fun (list (ssname ss (setq nn (1- nn))))) rtn)))))
+;自动成组
+(defun DB_make_group (ss /)
+  (princ))
 ;插入块 (DB_insert_block "图块名" 坐标 图层 角度 x比例 y比例 z比例)
 (defun DB_insert_block2 (name pt) 
   (DB_insert_block name pt "" 0 1 1 1))
@@ -1840,10 +1795,65 @@
     
   (alert str)
   (setq pt1 nil))        
-;打断直线
-(defun DB_break_line(line pt1 pt2)
-  ())
 
+;复制属性
+(defun DB_match_ssl ( ent / ssl matchlist m retssl conts)
+  (setq matchlist '(6 7 8 39 40 41 42 43 44 45 46 47 48 70 71 72 73 74 75 76 77 78 49 50 51 52 53 54 55 56 57 58 60 62 210 220 230 330))
+  (setq ssl (entget ent))
+  (foreach m matchlist
+    (setq conts (assoc m ssl))
+    (if conts
+      (setq retssl (append retssl (list conts)))))
+  retssl)
+;打断直线
+(defun DB_break_line(line pt1 pt2 / &x &y p1 p2 ssl_ po)
+  (DB_get_pt_2p line)
+  (if &x
+    (progn
+      (setq p1 (DB_get_per_ent line pt1))
+      (if (= p1 nil)
+        (if (< (distance pt1 &x) (distance pt1 &y))
+          (setq p1 &x)
+          (setq p1 &y)))
+
+      (if pt2
+        (progn
+          (setq p2 (DB_get_per_ent line pt2))
+          (if (= p2 nil)
+            (if (< (distance pt2 &x) (distance pt2 &y))
+              (setq p2 &x)
+              (setq p2 &y))))
+        (setq p2 p1))
+      (setq ssl_ (entget line))
+      (if (< (distance p2 &x) (distance p1 &x))
+        (setq po p1
+              p1 p2
+              p2 po))
+      ;; (if (> (distance p1 &x) *zl)
+      ;;   (entmake (append (list '(0 . "LINE")
+      ;;                          (cons 10 &x)
+      ;;                          (cons 11 p1))
+      ;;                    (DB_match_ssl line))))
+      ;; (if (> (distance p2 &y) *zl)
+      ;;   (entmake (append (list '(0 . "LINE")
+      ;;                          (cons 10 p2)
+      ;;                          (cons 11 &y))
+      ;;                    (db_match_ssl line))))
+      ;; (entdel line))))
+      (if (> (distance p1 &x) 0)
+        (progn
+          (DB_change_ent line 11 p1)
+          (if (> (distance p2 &y) 0)
+            (progn
+              (setq en (append (list '(0 . "LINE")
+                                     (cons 10 p2) 
+                                     (cons 11 &y))
+                               (DB_match_ssl line)))
+              (entmake en))))
+        (if (> (distance p2 &y) 0)
+          (progn
+            (DB_change_ent line 10 p2)))))))
+        
 ;生成标注样式
 (defun DB_make_dimstyle (name style)
   (entmake
@@ -1918,7 +1928,16 @@
           *helplist cmdlist)
     (setq alt "加载失败！请检查模块文件及Autocad查找目录设置。"))
   (alert alt))
-    
+;; ;编译模块
+;; (defun c:cplsp ( / DB_lsplist fn n m)
+;;   (setq DB_lsplist (DB_read_file (findfile "DB_lsp_list.DBM")))
+;;   (setq n (length DB_lsplist)
+;;         m 0
+;;         nm 0
+;;         cmdlist (list)
+;;         alt "已成功编译命令集：")      
+;;   (if (DB_yesorno "是否编译main.lsp" t)
+;;     ()))  
 ;重新加载工具包
 (defun c:reload()
   (setq *loadlsp nil)

@@ -83,6 +83,7 @@
   (DB_get_ent s1 int)
   ;获取多段线顶点
   (DB_get_Plpoints s1)
+  (DB_get_Plpoints3d s1)
   ;更改图元某一参数
   (DB_change_ent s1 int cont)
   ;取得动态块原名
@@ -91,6 +92,12 @@
   (DB_offset_pt pt x y)
   ;取得随机数值
   (DB_random site)
+  ;根据矩阵转换坐标
+  (DB_get_trans pts m)
+  ;在表的末尾加个元素
+  (DB_conslast s1 list)
+  ;获取离多段线最近段顶点，可输入pl线或点表
+  (DB_get_PLnear ss pt)
 
   ;;;;;;;;;;;;;;;绘制;;;;;;;;;;;;;;
   ;根据点表画线
@@ -122,7 +129,7 @@
   ;批量画线
   (DB_draw_lines lst layer)
   
-  ;打断直线 //未完成
+  ;打断直线
   (DB_break_line line pt1 pt2)
   ;字母递增
   (DB_nextnum str)
@@ -171,6 +178,7 @@
   (DB_make_dimstyle name style))
   
 ;=============
+
 ;坐标标注命令
 (defun c:zbbz (/ pt0 pt1 pt1x pt1y sca__ space snap_)
   (DB_closesnap)
@@ -221,7 +229,7 @@
   (princ))
 
 ;坐标修正命令
-(defun c:zbxz(/ ss sp n m s1 sx sy px py nx ny pt space pt1 ox oy ot)
+(defun c:zbxz(/ ss sp n m s1 sx sy px py pt space pt1 ox oy ot)
    
   (setq space (getvar "CTAB"))
 
@@ -292,7 +300,7 @@
   (princ))
 
 ;;标高标注命令
-(defun c:bgbz (/ evachange old_err pt1 snap_)
+(defun c:bgbz (/ evachange old_err pt1 snap_ ck obg)
   (DB_closesnap)
   (setvar "cmdecho" 0)
   (if (= *lasteva nil)
@@ -336,7 +344,17 @@
        ((= pt1 "Continue")
         (if (= *ctn "开")
           (setq *ctn "关")
-          (setq *ctn "开"))
+          (progn 
+            (setq ck (car (entsel "\n选择参考坐标：")))
+            (if (wcmatch (DB_get_realname ck) "EvaPos2")
+              (progn
+                (setq *ctn "开")
+                (setq obg (car (DB_get_att ck)))
+                (if (wcmatch obg "*=*")
+                  (setq obg (substr obg (+ (vl-string-position (ascii "=") obg) 2))))
+                (setq *eva_ (atof obg)
+                      *lasteva (* (cadr (DB_get_pt_1p ck)) 0.001))))))
+  
    
         (setq pt1 nil))
   
@@ -356,7 +374,69 @@
   (DB_releasesnap)
   (princ)(princ))
 
-;;面积计算命令
+;标高修正
+(defun c:bgxz (/ ss sp n m s1 eva_ eva_t pt1 obg pp sx)
+  (setq pt1 nil)
+  (prompt "\n选择要修正的标高标注：")
+  (setq ss (ssget '((0 . "INSERT"))))
+  (setq sp (ssadd)
+        n (SSlength ss)
+        m 0)
+  
+  (while (< m n)
+    (setq s1 (ssname ss m))
+    (if (= (DB_get_realname s1) "EvaPos2")
+      (setq sp (ssadd s1 sp)))
+    
+    (setq m (+ m 1)))
+  
+  (if (> (SSlength sp) 0)
+    (progn
+      (while (= pt1 nil)
+        (princ (strcat "\n显示比例:  1:"
+                (rtos *h 2 0)
+                "."))   
+        (initget 1 "Disp")
+        (setq pt1 (entsel "\n显示比例【D】 / < 参考标高 >: "))
+        (cond
+          ((= pt1 "Disp") (DB_set_scale_pt1))
+          (t
+            (setq ot (car pt1))
+            (if (= (DB_get_realname ot) "EvaPos2")
+              (progn
+                (setq obg (car (DB_get_att ot)))
+                (if (wcmatch obg "*=*")
+                    (setq obg (substr obg (+ (vl-string-position (ascii "=") obg) 2))))
+                (setq *eva_ (atof obg)
+                      *lasteva (* (cadr (DB_get_pt_1p ot)) 0.001)))
+              (setq pt1 nil)))))
+      (setq m 0
+            n (SSlength sp))
+      
+      (while (< m n)
+        (setq s1 (ssname ss m))
+        (setq obg (car (DB_get_att s1)))
+        (if (wcmatch obg "*=*")
+          (setq pp 1)
+          (if (wcmatch obg "*（结构）")
+            (setq pp 2)
+            (setq pp 0)))
+        (setq eva_ (+ (- (* (cadr (DB_get_pt_1p s1)) 0.001) *lasteva) *eva_))
+        (setq eva_t (rtos eva_ 2 3))
+        (setq sx (entnext s1))
+        (if (= eva_ 0)
+          (setq eva_t "%%P0.000"))
+        (if (= pp 1)
+          (setq eva_t (strcat "%%P0.000=" eva_t)))
+        (if (= pp 2)
+          (setq eva_t (strcat eva_t "（结构）")))
+        (DB_change_ent sx 1 eva_t)
+        (setq m (+ m 1)))))
+              
+  
+  (princ)
+  (princ))
+;面积计算命令
 (defun c:mjjs (/ SS1 n m pt1 s1 aaaa total nums addsub mit ssl numc_ str)
   
    
@@ -664,7 +744,7 @@
     (progn
       (setq pt1 nil)
       (setq pt1 (getpoint "<打断于>:"))
-      (command "break" s1 pt1 "@")
+      (command "break" s1 pt1 pt1)
       (princ))))
     
   

@@ -83,6 +83,7 @@
   (DB_get_ent s1 int)
   ;获取多段线顶点
   (DB_get_Plpoints s1)
+  (DB_get_Plpoints3d s1)
   ;更改图元某一参数
   (DB_change_ent s1 int cont)
   ;取得动态块原名
@@ -91,6 +92,12 @@
   (DB_offset_pt pt x y)
   ;取得随机数值
   (DB_random site)
+  ;根据矩阵转换坐标
+  (DB_get_trans pts m)
+  ;在表的末尾加个元素
+  (DB_conslast s1 list)
+  ;获取离多段线最近段顶点，可输入pl线或点表
+  (DB_get_PLnear ss pt)
 
   ;;;;;;;;;;;;;;;绘制;;;;;;;;;;;;;;
   ;根据点表画线
@@ -122,7 +129,7 @@
   ;批量画线
   (DB_draw_lines lst layer)
   
-  ;打断直线 //未完成
+  ;打断直线
   (DB_break_line line pt1 pt2)
   ;字母递增
   (DB_nextnum str)
@@ -171,6 +178,7 @@
   (DB_make_dimstyle name style))
   
 ;=============
+
 (defun setwallwidth_ (/ w__ wr__)  ;设置墙宽
   (princ "\n左墙宽 :<")
   (princ *wl_l)
@@ -381,16 +389,18 @@
       (setq xline_nw 2)
       (setq xline_nw 1))
     
-    (setq intP (inters x1 y1 x2 y2))
+    (if (and x1 y1 x2 y2)
+      (setq intP (inters x1 y1 x2 y2))
+      (setq intP nil))
     (if  (/= intP nil)
       (progn
        (DB_closesnap)
        (if (>= xline_nw sline_nw)
 
-         (command "break" sline (osnap intP "_int") "@"))
+         (DB_break_line sline (osnap intP "_int") nil))
   
        (if (>= sline_nw xline_nw)
-         (command "break" xline (osnap intP "_int") "@"))
+         (DB_break_line xline (osnap intP "_int") nil))
        (DB_releasesnap)
   
        (setq goon t)))
@@ -403,23 +413,28 @@
   
 
 
-(defun goonpick_ (/ ss s_)
+(defun goonpick_ (/ ss s_ n max rep)
   (setq ss (ssget "c" pt1 pt2 '((0 . "LINE") (8 . "建筑-墙体*"))))
-  (if (/= ss nil)
-    (pickone_ ss))
-  
-  (setq s_ (ssget "w" pt1 pt2 '((0 . "LINE") (8 . "建筑-墙体*"))))
-  (if (/= s_ nil)
-    (progn
-      ;; (setq n (SSlength s)
-      ;;       m 0
-      ;; )
-      ;; (while (< m n)
-      ;;   (entdel (ENTGET (ssname s m)))
-      ;;   (setq m (+ 1 m))
-      ;; )
-      (command "ERASE" "p" "")
-      (goonpick_))))
+  (setq max (SSlength ss)
+        rep 0)
+  (while (< rep max)
+    (setq ss (ssget "c" pt1 pt2 '((0 . "LINE") (8 . "建筑-墙体*"))))
+    (if (/= ss nil)
+      (pickone_ ss))
+    
+    (setq s_ (ssget "w" pt1 pt2 '((0 . "LINE") (8 . "建筑-墙体*"))))
+    (if (/= s_ nil)
+      (progn
+        (setq n (SSlength s_)
+              m 0)
+        
+        (while (< m n)
+          (entdel (ssname s_ m))
+          (setq m (+ 1 m)))))
+    (setq rep (1+ rep))))
+        
+        ;(command "ERASE" "p" "")
+        
     
   
 
@@ -435,7 +450,11 @@
   (DB_releasesnap)
   (princ)
   (princ))
-
+;修补墙线
+(defun c:xqx (/ pt1 pt2 ss)
+  ((DB_closesnap))
+  (setq pt1 (getpoint "\n第一点："))
+  (setq pt2 (getcorner pt1 "\n第二点：")))
 
 (defun pickwall  (x y mp / ang_ f p1 p2 ss xy0 cx1 cy1 cx2 cy2)
   (setq ang_ (angle x y)
@@ -528,7 +547,22 @@
       (setq x2 (inters sp1 sp2 &sx2 &sy2))
       (setq y1 (inters ep1 ep2 &sx1 &sy1))
       (setq y2 (inters ep1 ep2 &sx2 &sy2))
-
+      (if (= x1 nil)
+        (if (< (distance sp &sx1) (distance sp &sy1))
+          (setq x1 &sx1)
+          (setq x1 &sy1)))
+      (if (= x2 nil)
+        (if (< (distance sp &sx2) (distance sp &sy2))
+          (setq x2 &sx2)
+          (setq x2 &sy2)))
+      (if (= y1 nil)
+        (if (< (distance ep &sx1) (distance ep &sy1))
+          (setq y1 &sx1)
+          (setq y1 &sy1)))
+      (if (= y2 nil)
+        (if (< (distance ep &sx2) (distance ep &sy2))
+          (setq y2 &sx2)
+          (setq y2 &sy2)))
       (setq &x1 x1)
       (setq &x2 x2)
       (setq &y1 y1)
@@ -557,10 +591,10 @@
     (progn
       (DB_line3 &y1 &y2 (cdr (assoc 8 (ENTGET &s1))))
       (DB_line3 &x1 &x2 (cdr (assoc 8 (ENTGET &s1))))
-      (DB_closesnap)
-      (command "break" &s1 &x1 &y1)
-      (command "break" &s2 &x2 &y2)
-      (DB_releasesnap)
+      ;(DB_closesnap)
+      (DB_break_line &s1 &x1 &y1)
+      (DB_break_line &s2 &x2 &y2)
+      ;(DB_releasesnap)
         
       t)
     

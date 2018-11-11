@@ -83,6 +83,7 @@
   (DB_get_ent s1 int)
   ;获取多段线顶点
   (DB_get_Plpoints s1)
+  (DB_get_Plpoints3d s1)
   ;更改图元某一参数
   (DB_change_ent s1 int cont)
   ;取得动态块原名
@@ -91,6 +92,12 @@
   (DB_offset_pt pt x y)
   ;取得随机数值
   (DB_random site)
+  ;根据矩阵转换坐标
+  (DB_get_trans pts m)
+  ;在表的末尾加个元素
+  (DB_conslast s1 list)
+  ;获取离多段线最近段顶点，可输入pl线或点表
+  (DB_get_PLnear ss pt)
 
   ;;;;;;;;;;;;;;;绘制;;;;;;;;;;;;;;
   ;根据点表画线
@@ -122,7 +129,7 @@
   ;批量画线
   (DB_draw_lines lst layer)
   
-  ;打断直线 //未完成
+  ;打断直线
   (DB_break_line line pt1 pt2)
   ;字母递增
   (DB_nextnum str)
@@ -171,6 +178,7 @@
   (DB_make_dimstyle name style))
   
 ;=============
+
 (defun c:fgw
        (/ wg_ pt1 pt2 wgx wgy incX incXn incY incYn n lx ly hx hy)
   (if (= *wg nil)
