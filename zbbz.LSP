@@ -668,67 +668,6 @@
 
   (princ))
 
-;属性查询命令
-(defun c:sxcx (/ SS1 s1 cont SSL str sxlist i n)    
-   
-  (setq &text "")
-  (setq cont t)
-  (SETQ SS1 (ssget "_:S+."))
-  (setq s1 (ssname ss1 0))
-  (SETQ SSL (ENTGET S1))
-  (setq str (DB_cx ssl))
-  (setq sxlist (DB_tysx s1))
-  (setq n 1)
-  (if sxlist
-    (foreach i sxlist
-      (setq str (strcat str "\n" "属性名[" (rtos n 2 0) "]：\t" (nth 1 i) "\n" "内容[" (rtos n 2 0) "]：\t\t" (nth 2 i)))
-      (setq n (+ n 1))))
-  ;; (if  (= (CDR (ASSOC 66 SSL)) 1)
-
-  ;;   (progn
-  ;;     (while cont
-  ;;       (setq ssl (DB_dizhen ssl))
-  ;;       (if (= (CDR (ASSOC 0 SSL)) "ATTRIB")
-  ;;         (setq str (strcat str (cxx_ ssl)))
-  ;;         (setq cont nil)))))
-  (alert str))
-(defun c:sxcxp (/ SS1 s1 cont SSL str sxlist i n)    
-   
-  (setq &text "")
-  (setq cont t)
-  (SETQ SS1 (nentsel))
-  (setq s1 (car ss1))
-  (SETQ SSL (ENTGET S1))
-  (setq str (DB_cx ssl))
-  (setq sxlist (DB_tysx s1))
-  (setq n 1)
-  (if sxlist
-    (foreach i sxlist
-      (setq str (strcat str "\n" "属性名[" (rtos n 2 0) "]：\t" (nth 1 i) "\n" "内容[" (rtos n 2 0) "]：\t\t" (nth 2 i)))
-      (setq n (+ n 1))))
-  ;; (if  (= (CDR (ASSOC 66 SSL)) 1)
-
-  ;;   (progn
-  ;;     (while cont
-  ;;       (setq ssl (DB_dizhen ssl))
-  ;;       (if (= (CDR (ASSOC 0 SSL)) "ATTRIB")
-  ;;         (setq str (strcat str (cxx_ ssl)))
-  ;;         (setq cont nil)))))
-  (alert str))
-;属性对比
-(defun c:sxdb(/ ss1 ss2 s1 s2 cont ssl1 ssl2 str)
-  (setq &text "")
-  (setq cont t)
-  (princ "\n选择第一个图元：")
-  (setq ss1 (ssget "_:S+."))
-  (princ "\n选择要对比的图元：")
-  (setq ss2 (ssget "_:S+."))
-  (setq s1 (ssname ss1 0))
-  (setq s2 (ssname ss2 0))
-  (setq ssl1 (entget s1)
-        ssl2 (entget s2))
-  (setq str (DB_dbxx ssl1 ssl2))
-  (alert str))
 ;打断于点命令
 (defun c:dd (/ SS1 pt1 s1 pt1 tp yn SSL)  
    
@@ -1567,7 +1506,7 @@
   (setq pt1 nil)
   zixiang)
 ;插入图框标记
-(defun c:tkbj(/ pt1 SSL pt2 pta ptb ptc cp tknumber ss s1 tkname n m Ax Ay dic Cx Cy tf tkn)
+(defun c:tkbj(/ pt1 SSL pt2 pta ptb ptc cp tknumber ss s1 tkname n m Ax Ay dic Cx Cy tf tkn sizelist nm size space space_ sizex sizey)
   (setq pt1 nil)           
   (setq tkname nil)    
   (if (= *tknumber nil)
@@ -1631,19 +1570,23 @@
     (setq dic "竖"
           Cx Ay
           Cy Ax))
-  (setq tf "A4")
-  (if (or (> Cx 307) (> Cy 220))
-    (setq tf "A3"))
-  (if (or (> Cx 430) (> Cy 307))
-    (setq tf "A2"))
-  (if (or (> Cx 604) (> Cy 430))
-    (setq tf "A1"))
-  (if (or (> Cx 851) (> Cy 604))
-    (setq tf "A0"))
-  (if (or (> Cx 1199) (> Cy 851))
-    (setq tf "A0+0.25"))
-  (if (or (> Cx 1497) (> Cy 851))
-    (setq tf "A0+0.5"))
+  (setq sizelist (DB_read_file (findfile "printsize.DBM"))
+        m 0
+        n (length sizelist))
+  (while (< m n)
+    (setq size (nth m sizelist)
+          sizex (atoi (nth 1 size))
+          sizey (atoi (nth 2 size))
+          space_ (* sizex sizey))
+    (if (and (> (- sizex Cx) -5) (> (- sizey Cy) -5))
+      (if space
+        (if (< space_ space)
+          (setq space space_
+                nm m))
+        (setq space space_
+              nm m)))
+    (setq m (1+ m)))
+  (setq tf (nth 0 (nth nm sizelist)))
   (setq tf (strcat tf dic))
   (if (= tkname nil)
     (setq tkname "xx"))

@@ -181,7 +181,7 @@
 
 (defun c:pd (/     h__   ss1   n     pt1   pt2   m     ed    SSL
              py1   py2   pt    py    mirr  podua podui podul inpt
-             poduis   poduls)
+             poduis   poduls mark mark_i icolor mark_l p1 p2)
               ;坡度标注
   ;; (setvar "cmdecho" 0)
   ;; (setvar "unitmode" 0)
@@ -217,53 +217,65 @@
     
   
   (setq ss1 nil)
-  (princ "\n选择路段中心线（直接回车按直线处理）：")
-  (SETQ SS1 (ssget "_:S+."))
-  (if (= ss1 nil)
-    (setq podul (* (distance pt1 pt2) *sca_))
+  (SETQ ss1 (entsel "\n选择路段中心线（直接回车按直线处理）：")
+        s1 (car ss1))
+  (if (or (= ss1 nil) (wcmatch (DB_get_ent s1 0) "LINE"))
+    (setq podul (* (distance pt1 pt2) *sca_)
+          inpt (list (/ (+ (car pt1) (car pt2)) 2)
+                     (/ (+ (cadr pt1) (cadr pt2)) 2)
+                     0))
     (progn 
-      (setq s1 (ssname ss1 0))
+      (setq s1 (car ss1))
       (command "_lengthen" s1 "" "" "")
-      (setq podul (* (getvar "PERIMETER") *sca_))))
+      
+      (setq podul (* (getvar "PERIMETER") *sca_)
+            mark_l (DB_get_PLnear s1 (cadr ss1))
+            p1 (car mark_l)
+            p2 (cadr mark_l))
+      (if (< (distance p1 pt1) (distance p2 pt1))
+        (setq pt1 p1
+              pt2 p2)
+        (setq pt2 p1
+              pt1 p2))
+      (setq inpt (DB_get_per_point pt1 pt2 (cadr ss1) nil))))
+  
+ (setq podui (* (/ (abs (- py1 py2)) podul) 100))
+ (if (> py1 py2)
+   (setq podua (angle pt1 pt2))
+   (setq podua (angle pt2 pt1)))
+  
+ (setq podua (* (/ podua pi) 180))
+ (if (and (> podua 90) (<= podua 270))
+   (progn
+     (setq podua (- 540 podua))
+     (setq mirr -1)))
     
-  
-    
-  
-  (setq podui (* (/ (abs (- py1 py2)) podul) 100))
-  (if (> py1 py2)
-    (setq podua (angle pt1 pt2))
-    (setq podua (angle pt2 pt1)))
-  
-  (setq podua (* (/ podua pi) 180))
-  (if (and (> podua 90) (<= podua 270))
-    (progn
-      (setq podua (- 540 podua))
-      (setq mirr -1)))
-    
-  
-
-  (setq  inpt (list (/ (+ (car pt1) (car pt2)) 2)
-               (/ (+ (cadr pt1) (cadr pt2)) 2)
-               0))
-       
-  
-  (setq poduis (strcat (strcat "i=" (rtos podui 2 2)) "%"))
-  (setq poduls (strcat (strcat "L=" (rtos podul 2 2)) "m"))
-  (command "INSERT" "Podu.dwg" inpt *h "" podua poduis poduls)
-  (if (= mirr -1)
-    (progn
-      (command "MIRROR"
-         (entlast)
-         ""
-         inpt
-         (list (car inpt) (+ (cadr inpt) 10000000))
-         "y")))
+ (setq poduis (strcat (strcat "i=" (rtos podui 2 2)) "%"))
+ (setq poduls (strcat (strcat "L=" (rtos podul 2 2)) "m"))
+ (command "INSERT" "Podu.dwg" inpt *h "" podua poduis poduls)
+ (setq mark (entlast))
+ (setq mark_i (entnext (DB_get_ent mark -1)))
+ (cond 
+   ((< podui 0.2) (setq icolor 152))
+   ((< podui 3) (setq icolor 91))
+   ((< podui 5) (setq icolor 7))
+   ((< podui 8) (setq icolor 2))
+   (t (setq icolor 1)))
+ (DB_change_ent mark_i 62 icolor)
+ (if (= mirr -1)
+   (progn
+     (command "MIRROR"
+        mark
+        ""
+        inpt
+        (list (car inpt) (+ (cadr inpt) 10000000))
+        "y")))
       
           ;  (command "ROTATE" (entlast) "" inpt (- 0 podua) )
     
   
-  (DB_movelayer "pd" (entlast))
-  (DB_releasesnap))
+ (DB_movelayer "pd" mark)
+ (DB_releasesnap))
 
 ;坐标赋值
 (defun setpt_ ()            
@@ -711,10 +723,10 @@
   (setq al (DB_get_referline)
         lx (car al)
         ly (cadr al))
-  (if (< (distance py lx) (distance px lx))
+  (if (< (+ (distance py lx) (distance px ly)) (+ (distance py ly) (distance px lx)))
     (setq po px
           px py
-          py px))
+          py po))
   (align ss px lx py ly "" "N")
   ;;(setq ang (- (angle lx ly) (angle px py)))
   ;; (setq m 0
